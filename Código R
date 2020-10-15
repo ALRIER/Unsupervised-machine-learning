@@ -1,0 +1,163 @@
+install.packages("psych")
+install.packages("corrplot")
+install.packages("corrr")
+install.packages("semPlot")
+install.packages("latticeExtra")
+install.packages("readr") 
+install.packages("lavaan")
+library("semPlot")
+library("readr")
+library("lavaan")
+library("dplyr")
+library("psych")
+library("corrr")
+library("corrplot")
+library("haven")
+library("semTools")
+??Lavaan
+
+'''cargar el archivo'''
+rf <- read_excel("Documentos/AAA DOCTORADO/PROYECTO DOCTORAL/metodológico/Respuestas encuesta final.xlsx")
+'''aquí creo un df con las variables que voy a necesitar'''
+data1 <- rf%>%select(uso_r_sociales1, uso_r_sociales2, uso_r_sociales3, uso_r_sociales4, uso_r_sociales5, Int_busq_info1, Int_busq_info2, Int_busq_info3, int_visita1, int_visita2, int_visita3, int_visita4, Sexo, Edad)
+
+'''correr una tabla de correlación'''
+mcorre <-cor(data1)
+View(mcorre)
+corrplot(cor(data1), order="hclust", tl.col='black', tl.cex=0.5)
+
+'''aplico pruebas de bartlett, covarianza, kmo, etc'''
+'''importante tener en cuenta que para kmo las variables deben estar por encima de
+0.80 para ser excelente nivel de analisis factorial'''
+bartlett.test(data1)
+cov(data1)
+KMO(data1)
+'''una vez obtenidos todos los indicadores se procede a identificar el
+el número de factres recomendados, en especial por sistemas matemáticos'''
+
+eigen(mcorre)
+'''también puedo usar el analisis de componentes principales'''
+acp <- prcomp(Respuestas_encuesta_final, center = T, scale. = T)
+print(acp)
+plot(acp, type="l")
+
+'''AFE -> procedo a determinar el número de factores
+usando AFE y usarlo como guía para mi AFC'''
+AnalisisF <- factanal(data1, factors = 3, rotation = "varimax", scores= "Bartlett")
+AnalisisF
+
+'''Análisis factorial confirmatorio'''
+'''una vez desarrollado el AFE e identificado un posible número de factores
+procedo a desarrolalr mi AFC para compara modelos y ajustes'''
+
+'''Aquí solo aparece un modelo que yo ya sé que funciona, pero la idea es 
+comparar más de un modelo para ver sus ajustes'''
+
+modelo0 <- 'Uso_rd =~ uso_r_sociales1 + uso_r_sociales2 + uso_r_sociales3
+Int_B =~ Int_busq_info1 + Int_busq_info2 + Int_busq_info3 
+Int_V =~ int_visita1 + int_visita2 + int_visita3 + int_visita4
+Uso_rd~~Int_B
+Int_B~~Int_V
+Uso_rd~~Int_V
+'
+
+CFA1<- cfa(modelo0, orthogonal= TRUE, data = data1,
+           estimator= "WLSMV", ordered =
+             names(data1))
+
+#modelo0 <- sem(modelo0, data = data1)
+'''miro el ajuste del modelo con el sumario de datos'''
+summary(CFA1, fit.measures=TRUE, rsq=TRUE)
+#parameterestimates(modelo0, standardized = TRUE)
+#fitMeasures(CFA1)
+
+#semPaths(CFA1, what = "paths", layout = "tree", title = TRUE, style = "LISREL")
+#semPaths(CFA1, what = "est", layout = "tree", title = TRUE, style = "LISREL")
+'''este grpáfico es más agradble que los otros'''
+semPaths(CFA1, intercepts = FALSE,edge.label.cex=1.5, optimizeLatRes = TRUE, groups = "lat",pastel = TRUE, exoVar = FALSE, sizeInt=5,edge.color ="black",esize = 6, label.prop=2,sizeLat = 6,"std", layout="circle2")
+
+'''importante tener en cuenta que todos los valores deben ser
+superiores a 0.90 y el RMSEA menor a .60 o .61'''
+
+'''por otro lado estos ajustes de qui abajo no son los 
+parametros robustos y para mas crebidilidad y fiabilidad
+mejor ir al sumario de datos y ver los índices Rosubstos'''
+fitMeasures(CFA1,
+            c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
+
+#Análisis de Invarianza 1: Por Sexo
+#conf1<-cfa(modelo0, orthogonal=FALSE, data= data1, estimator="WLSMV",group="Sexo", ordered =names(data1))
+#summary(conf1, fit.measures=TRUE)
+#fitMeasures(conf1,
+#            c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
+'''realizo el análisis de mi modelo a nivel configural'''
+modelo0.conf <- measEq.syntax(configural.model = modelo0, estimator="WLSMV", ID.fac = "std.lv", parameterization = "theta",  group = "Sexo", orthogonal=FALSE, data=data1,
+                              ID.cat = "Wu.Estabrook.2016",return.fit=TRUE,group.equal = c("thresholds"))
+summary(modelo0.conf, fit.measures=TRUE)
+fitMeasures(modelo0.conf,
+            c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
+'''realizo el análisis de mi modelo a nivel metrico'''
+modelo0.metric<- measEq.syntax(configural.model = modelo0 ,estimator="WLSMV", ID.fac = "std.lv", parameterization = "theta",  group = "Sexo", orthogonal=FALSE, data=data1, parameterization = "theta",
+                               ID.cat = "Wu.Estabrook.2016",return.fit=TRUE, group.equal = c("thresholds","loadings"),long.equal  = c("thresholds","loadings"))
+summary(modelo0.metric, fit.measures=TRUE)
+fitMeasures(modelo0.metric,
+            c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
+'''realizo el análisis de mi modelo a nivel escalar'''
+modelo0.scalar<- measEq.syntax(configural.model = modelo0 ,estimator="WLSMV", ID.fac = "std.lv", parameterization = "theta",  group = "Sexo", orthogonal=FALSE, data=data1, parameterization = "theta",
+                               ID.cat = "Wu.Estabrook.2016",return.fit=TRUE, group.equal = c("thresholds","loadings","intercepts"),long.equal  = c("thresholds","loadings","intercepts"))
+summary(modelo0.scalar, fit.measures=TRUE)
+fitMeasures(modelo0.scalar,
+            c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
+'''realizo el análisis de mi modelo a nivel estricto'''
+modelo0.stric<- measEq.syntax(configural.model = modelo0 ,estimator="WLSMV", ID.fac = "std.lv", parameterization = "theta",  group = "Sexo", orthogonal=FALSE, data=data1, parameterization = "theta",
+                              ID.cat = "Wu.Estabrook.2016",return.fit=TRUE, group.equal = c("thresholds","loadings","intercepts","residuals"),long.equal  = c("thresholds","loadings","intercepts","residuals"))
+summary(modelo0.stric, fit.measures=TRUE)
+fitMeasures(modelo0.stric,
+            c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
+
+#datos mejor organizados
+lavaan::anova(modelo0.stric,modelo0.scalar,modelo0.metric,modelo0.conf)
+
+fit.stats <- rbind(fitmeasures(modelo0.conf, fit.measures = c("chisq", "df", "rmsea", "tli", "cfi", "aic")),
+                   fitmeasures(modelo0.metric, fit.measures = c("chisq", "df", "rmsea", "tli", "cfi", "aic")),
+                   fitmeasures(modelo0.scalar, fit.measures = c("chisq", "df", "rmsea", "tli", "cfi", "aic")),
+                   fitmeasures(modelo0.stric, fit.measures = c("chisq", "df", "rmsea", "tli", "cfi", "aic")))
+rownames(fit.stats) <- c("configural", "metric","scalar", "strict")
+fit.stats
+
+
+#Invariance 2 Edad (mismo procedimiento pero para variable edad)
+modelo0.conf.ed <- measEq.syntax(configural.model = modelo0, estimator="WLSMV", ID.fac = "std.lv", parameterization = "theta",  group = "Edad", orthogonal=FALSE, data=data1,
+                              ID.cat = "Wu.Estabrook.2016",return.fit=TRUE,group.equal = c("thresholds"))
+
+summary(modelo0.conf.ed, fit.measures=TRUE)
+fitMeasures(modelo0.conf.ed,
+            c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
+
+modelo0.metric.ed<- measEq.syntax(configural.model = modelo0 ,estimator="WLSMV", ID.fac = "std.lv", parameterization = "theta",  group = "Edad", orthogonal=FALSE, data=data1, parameterization = "theta",
+                               ID.cat = "Wu.Estabrook.2016",return.fit=TRUE, group.equal = c("thresholds","loadings"),long.equal  = c("thresholds","loadings"))
+summary(modelo0.metric.ed, fit.measures=TRUE)
+fitMeasures(modelo0.metric.ed,
+            c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
+
+modelo0.scalar.ed<- measEq.syntax(configural.model = modelo0 ,estimator="WLSMV", ID.fac = "std.lv", parameterization = "theta",  group = "Edad", orthogonal=FALSE, data=data1, parameterization = "theta",
+                               ID.cat = "Wu.Estabrook.2016",return.fit=TRUE, group.equal = c("thresholds","loadings","intercepts"),long.equal  = c("thresholds","loadings","intercepts"))
+summary(modelo0.scalar.ed, fit.measures=TRUE)
+fitMeasures(modelo0.scalar.ed,
+            c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
+
+modelo0.stric.ed<- measEq.syntax(configural.model = modelo0 ,estimator="WLSMV", ID.fac = "std.lv", parameterization = "theta",  group = "Edad", orthogonal=FALSE, data=data1, parameterization = "theta",
+                              ID.cat = "Wu.Estabrook.2016",return.fit=TRUE, group.equal = c("thresholds","loadings","intercepts","residuals"),long.equal  = c("thresholds","loadings","intercepts","residuals"))
+summary(modelo0.stric.ed, fit.measures=TRUE)
+fitMeasures(modelo0.stric.ed,
+            c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
+
+#datos mejor organizados
+lavaan::anova(modelo0.stric.ed,modelo0.scalar.ed,modelo0.metric.ed,modelo0.conf.ed)
+
+fit.stats <- rbind(fitmeasures(modelo0.conf.ed, fit.measures = c("chisq", "df", "rmsea", "tli", "cfi", "aic")),
+                   fitmeasures(modelo0.metric.ed, fit.measures = c("chisq", "df", "rmsea", "tli", "cfi", "aic")),
+                   fitmeasures(modelo0.scalar.ed, fit.measures = c("chisq", "df", "rmsea", "tli", "cfi", "aic")),
+                   fitmeasures(modelo0.stric.ed, fit.measures = c("chisq", "df", "rmsea", "tli", "cfi", "aic")))
+rownames(fit.stats) <- c("configural", "metric","scalar", "strict")
+fit.stats
