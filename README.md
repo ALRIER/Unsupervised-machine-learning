@@ -1,0 +1,1 @@
+# AFE-AFC-SEM-Invarianza-en-Rstudio-
