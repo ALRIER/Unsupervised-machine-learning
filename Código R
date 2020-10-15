@@ -161,3 +161,7 @@ fit.stats <- rbind(fitmeasures(modelo0.conf.ed, fit.measures = c("chisq", "df", 
                    fitmeasures(modelo0.stric.ed, fit.measures = c("chisq", "df", "rmsea", "tli", "cfi", "aic")))
 rownames(fit.stats) <- c("configural", "metric","scalar", "strict")
 fit.stats
+
+'''IDENTIFICAR QUE ELEMENTOS HAY QUE MODIFICAR''
+model3partial<-cfa(modelo0, orthogonal=FALSE, data=DFinvar, estimator="MLM",group="Sex", group.equal=c("loadings","intercepts"), group.partial=c("UCLA3~1"))
+summary(model3partial,fit.measures=TRUE)
