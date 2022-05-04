@@ -16,43 +16,37 @@ library("haven")
 library("semTools")
 ??Lavaan
 
-'''cargar el archivo'''
+#i will upload the file.
 rf <- read_excel("Documentos/AAA DOCTORADO/PROYECTO DOCTORAL/metodológico/Respuestas encuesta final.xlsx")
-'''aquí creo un df con las variables que voy a necesitar'''
+#Using dyplyer i create a dataframe with the variables i will use. 
 data1 <- rf%>%select(uso_r_sociales1, uso_r_sociales2, uso_r_sociales3, uso_r_sociales4, uso_r_sociales5, Int_busq_info1, Int_busq_info2, Int_busq_info3, int_visita1, int_visita2, int_visita3, int_visita4, Sexo, Edad)
-
-'''correr una tabla de correlación'''
+#i Take a look of the correlation matrix, to see hoe the variables behave. 
 mcorre <-cor(data1)
 View(mcorre)
+#i will print the correlation matxir to take a better look of it. 
 corrplot(cor(data1), order="hclust", tl.col='black', tl.cex=0.5)
-
-'''aplico pruebas de bartlett, covarianza, kmo, etc'''
-'''importante tener en cuenta que para kmo las variables deben estar por encima de
-0.80 para ser excelente nivel de analisis factorial'''
+#I make bartlett, KMO and covariances.
+#Important to take in consideration a KMO higer than 0.80 for the CPA or Factorial analysis. 
 bartlett.test(data1)
 cov(data1)
 KMO(data1)
-'''una vez obtenidos todos los indicadores se procede a identificar el
-el número de factres recomendados, en especial por sistemas matemáticos'''
-
+#I proceed to identify the factors using the CPA method or the igen matrix. 
 eigen(mcorre)
-'''también puedo usar el analisis de componentes principales'''
+#As i told the CPA is a good indicator too. 
 acp <- prcomp(Respuestas_encuesta_final, center = T, scale. = T)
 print(acp)
+# i can see the L plot to see the number of factors present 
 plot(acp, type="l")
-
-'''AFE -> procedo a determinar el número de factores
-usando AFE y usarlo como guía para mi AFC'''
+#i will see if the 3 factors fits propperly with the varimax rotation method. 
 AnalisisF <- factanal(data1, factors = 3, rotation = "varimax", scores= "Bartlett")
 AnalisisF
+#CONFORMATORY FACTOR ANALYSIS  CFA-----------------------
+#once i made the CPA and the exploratory factor analysis i can organize the confirmatory onces. 
 
-'''Análisis factorial confirmatorio'''
-'''una vez desarrollado el AFE e identificado un posible número de factores
-procedo a desarrolalr mi AFC para compara modelos y ajustes'''
+#The idea of CFA is to confirm the propper structure of the variables into an specific model so
+#i proceed to create the model.
 
-'''Aquí solo aparece un modelo que yo ya sé que funciona, pero la idea es 
-comparar más de un modelo para ver sus ajustes'''
-
+#here i show just one model, which i already know that worked, but in fact, ther where 3 different models i tried. 
 modelo0 <- 'Uso_rd =~ uso_r_sociales1 + uso_r_sociales2 + uso_r_sociales3
 Int_B =~ Int_busq_info1 + Int_busq_info2 + Int_busq_info3 
 Int_V =~ int_visita1 + int_visita2 + int_visita3 + int_visita4
@@ -60,62 +54,80 @@ Uso_rd~~Int_B
 Int_B~~Int_V
 Uso_rd~~Int_V
 '
-
+#i will identify the structure of the model 
 CFA1<- cfa(modelo0, orthogonal= TRUE, data = data1,
            estimator= "WLSMV", ordered =
              names(data1))
 
-#modelo0 <- sem(modelo0, data = data1)
-'''miro el ajuste del modelo con el sumario de datos'''
-summary(CFA1, fit.measures=TRUE, rsq=TRUE)
-#parameterestimates(modelo0, standardized = TRUE)
-#fitMeasures(CFA1)
+3this one in case i would like to make the SEM (Structural equation models). 
+#modelo0 <- sem(modelo0, data = data1) 
 
+#I can create the summary of the model, to see how it fits, if fits. 
+summary(CFA1, fit.measures=TRUE, rsq=TRUE)
+#I can take a look of all the parameters individually. 
+#parameterestimates(modelo0, standardized = TRUE)
+#I can take a look of the fitmeasures, which is pretty good idea in some cases. 
+#fitMeasures(CFA1)
+#I can plot the model in a tradittional way. 
 #semPaths(CFA1, what = "paths", layout = "tree", title = TRUE, style = "LISREL")
 #semPaths(CFA1, what = "est", layout = "tree", title = TRUE, style = "LISREL")
-'''este grpáfico es más agradble que los otros'''
+#But this kind of plot is much better in term of aestethics. 
 semPaths(CFA1, intercepts = FALSE,edge.label.cex=1.5, optimizeLatRes = TRUE, groups = "lat",pastel = TRUE, exoVar = FALSE, sizeInt=5,edge.color ="black",esize = 6, label.prop=2,sizeLat = 6,"std", layout="circle2")
 
-'''importante tener en cuenta que todos los valores deben ser
-superiores a 0.90 y el RMSEA menor a .60 o .61'''
-
-'''por otro lado estos ajustes de qui abajo no son los 
-parametros robustos y para mas crebidilidad y fiabilidad
-mejor ir al sumario de datos y ver los índices Rosubstos'''
+#Now, when we are taking a look of the model goodness-of-fit indices, is good to know that 
+#every value has to be upper thatn 0.90 but the RMSEA has to be lower than 0.60(+/-)
+#here i can extract the model goodness-of-fit indices im interested in.
 fitMeasures(CFA1,
             c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
 
-#Análisis de Invarianza 1: Por Sexo
+#Invariance multigroup analysis ----------------------------------
+
+#Now, im interested in knowing if the male and female have the same structure 
+#or if the model i decided is the best behaves in the same way for both of theme.
+#for this reason i will make an invariance multigroup analysis.
+
+#Now there are 5 different levels of invariance multigroup, i will check each one to see if the 
+# model goodness-of-fit indices change of not between different groups. 
+
+#First,  i check my CFA again, everything is working well. 
 #conf1<-cfa(modelo0, orthogonal=FALSE, data= data1, estimator="WLSMV",group="Sexo", ordered =names(data1))
 #summary(conf1, fit.measures=TRUE)
 #fitMeasures(conf1,
 #            c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
-'''realizo el análisis de mi modelo a nivel configural'''
+#Now i will start with the configural level of invariance, which is the most basic level
 modelo0.conf <- measEq.syntax(configural.model = modelo0, estimator="WLSMV", ID.fac = "std.lv", parameterization = "theta",  group = "Sexo", orthogonal=FALSE, data=data1,
                               ID.cat = "Wu.Estabrook.2016",return.fit=TRUE,group.equal = c("thresholds"))
+#Check the summary                              
 summary(modelo0.conf, fit.measures=TRUE)
+#Fit indices, i dont see a big variance in the RMSEA and GFI which aproves the level. 
 fitMeasures(modelo0.conf,
             c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
-'''realizo el análisis de mi modelo a nivel metrico'''
+#i continue with the Metric level
 modelo0.metric<- measEq.syntax(configural.model = modelo0 ,estimator="WLSMV", ID.fac = "std.lv", parameterization = "theta",  group = "Sexo", orthogonal=FALSE, data=data1, parameterization = "theta",
                                ID.cat = "Wu.Estabrook.2016",return.fit=TRUE, group.equal = c("thresholds","loadings"),long.equal  = c("thresholds","loadings"))
+#I run the summary
 summary(modelo0.metric, fit.measures=TRUE)
+#Take a look of the fit indices and aprove de next level
 fitMeasures(modelo0.metric,
             c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
-'''realizo el análisis de mi modelo a nivel escalar'''
+#now i will check the scalar level. 
 modelo0.scalar<- measEq.syntax(configural.model = modelo0 ,estimator="WLSMV", ID.fac = "std.lv", parameterization = "theta",  group = "Sexo", orthogonal=FALSE, data=data1, parameterization = "theta",
                                ID.cat = "Wu.Estabrook.2016",return.fit=TRUE, group.equal = c("thresholds","loadings","intercepts"),long.equal  = c("thresholds","loadings","intercepts"))
+#i apply the summary of the invariance model. 
 summary(modelo0.scalar, fit.measures=TRUE)
+#check the fit indices and aprove the level after see that the RMSEA doesent change in more than 0.015 and the GFI doesent change in more than 0.1.
 fitMeasures(modelo0.scalar,
             c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
-'''realizo el análisis de mi modelo a nivel estricto'''
+Finally i will check the strict level (theres one more level but i will no check it for now)
 modelo0.stric<- measEq.syntax(configural.model = modelo0 ,estimator="WLSMV", ID.fac = "std.lv", parameterization = "theta",  group = "Sexo", orthogonal=FALSE, data=data1, parameterization = "theta",
                               ID.cat = "Wu.Estabrook.2016",return.fit=TRUE, group.equal = c("thresholds","loadings","intercepts","residuals"),long.equal  = c("thresholds","loadings","intercepts","residuals"))
+#Summary 
 summary(modelo0.stric, fit.measures=TRUE)
+#approved the level, i can conclude theres no significant differences in the perception of my variable between male and female. 
 fitMeasures(modelo0.stric,
             c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
 
-#datos mejor organizados
+#Now i will organize the model fit indices 
 lavaan::anova(modelo0.stric,modelo0.scalar,modelo0.metric,modelo0.conf)
 
 fit.stats <- rbind(fitmeasures(modelo0.conf, fit.measures = c("chisq", "df", "rmsea", "tli", "cfi", "aic")),
