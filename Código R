@@ -138,10 +138,11 @@ rownames(fit.stats) <- c("configural", "metric","scalar", "strict")
 fit.stats
 
 
-#Invariance 2 Edad (mismo procedimiento pero para variable edad)
+#Now i repeat the same process with different group, now i will try the invariance with the age gruop. 
+#first level invariance. 
 modelo0.conf.ed <- measEq.syntax(configural.model = modelo0, estimator="WLSMV", ID.fac = "std.lv", parameterization = "theta",  group = "Edad", orthogonal=FALSE, data=data1,
                               ID.cat = "Wu.Estabrook.2016",return.fit=TRUE,group.equal = c("thresholds"))
-
+#i make the summary of the model 
 summary(modelo0.conf.ed, fit.measures=TRUE)
 fitMeasures(modelo0.conf.ed,
             c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
@@ -164,7 +165,7 @@ summary(modelo0.stric.ed, fit.measures=TRUE)
 fitMeasures(modelo0.stric.ed,
             c( 'rmr','rmsea','gfi','agfi', 'nfi','cfi', 'ifi' ) )
 
-#datos mejor organizados
+#i organize the information. 
 lavaan::anova(modelo0.stric.ed,modelo0.scalar.ed,modelo0.metric.ed,modelo0.conf.ed)
 
 fit.stats <- rbind(fitmeasures(modelo0.conf.ed, fit.measures = c("chisq", "df", "rmsea", "tli", "cfi", "aic")),
@@ -174,6 +175,6 @@ fit.stats <- rbind(fitmeasures(modelo0.conf.ed, fit.measures = c("chisq", "df", 
 rownames(fit.stats) <- c("configural", "metric","scalar", "strict")
 fit.stats
 
-'''IDENTIFICAR QUE ELEMENTOS HAY QUE MODIFICAR''
+#this part of the code helps me to identify which elements i have to modify in each level. 
 model3partial<-cfa(modelo0, orthogonal=FALSE, data=DFinvar, estimator="MLM",group="Sex", group.equal=c("loadings","intercepts"), group.partial=c("UCLA3~1"))
 summary(model3partial,fit.measures=TRUE)
