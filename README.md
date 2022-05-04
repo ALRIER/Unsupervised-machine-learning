@@ -1,6 +1,6 @@
 # AFE-AFC-SEM-Invarianza-en-Rstudio-
 
-This code contains 3 multivariate analyses. The first one is an exploratory Factor analysis based on a "dark tourism scale created by myself". The objective of the EFA was to see if the scale had the number of dimensions we thought. 
+This code contains 3 multivariate analyses. The first one is an exploratory Factor analysis and a principal components analysis, these statistical techniques based on a "dark tourism scale" created by myself. The objective of the EFA was to see if the scale had the number of dimensions we thought. 
 
 Once we saw that, we proceed to make a Confirmatory factorial analysis in order to understand the best theoretical model that fitted the data.
 
