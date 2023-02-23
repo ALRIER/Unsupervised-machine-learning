@@ -1,9 +1,13 @@
 # AFE-AFC-SEM-Invarianza-en-Rstudio-
 
-This code contains 3 multivariate analyses. The first one is an exploratory Factor analysis and a principal components analysis, these statistical techniques based on a "dark tourism scale" created by myself. The objective of the EFA was to see if the scale had the number of dimensions we thought. 
+This code comprises three multivariate analyses. The first analysis is an EFA (exploratory factor analysis) with PCA (principal component analysis), based on a 'dark tourism perceived value scale' that I created. The objective of the EFA-PCA was to explore the underlying structure in a data sample obtained from an 821-participant Likert scale. To review this part of the study, please refer to the file named 'First_model_PCA_EFA.ipynb.'
 
-Once we saw that, we proceed to make a Confirmatory factorial analysis in order to understand the best theoretical model that fitted the data.
+The second part ---> CFA, SEM & Invariance are in the file named 'AFC-SEM.PDF'
 
-Finally, we made an invariance analysis in order to understand if there were any differences between women and man groups in the perception of this kind of tourism and see the possibility to buy the services. 
+Having identified the underlying structure, we conducted a CFA (confirmatory factor analysis) to compare different theoretical models and identify the best fit for the data.
 
-I have two publications with this inormation, one in spanish and the second in english.
+We used two additional techniques in this study. First, we employed an SEM (structural equation model) to identify the possible relationship between a client's perceived value and other variables related to their intention to buy a product and share information about it on the internet.
+
+Finally, we conducted an invariance analysis to determine if there were any differences in how age and sex groups perceived the value of the product and service previously mentioned.
+
+This repository has resulted in two publications, one in Spanish and the other in English.
