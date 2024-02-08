@@ -11,5 +11,7 @@ Two additional techniques were employed in this study. First, an SEM (structural
 Finally, an invariance analysis was conducted to determine if there were any differences in how age and sex groups perceived the value of the product and service previously mentioned.
 
 This repository has resulted in two publications, one in Spanish and the other in English.
+
 http://doi.org/10.37741/t.71.2.6
+
 DOI: 10.14349/RLP.2020.V52.22
