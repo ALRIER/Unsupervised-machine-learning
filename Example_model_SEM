@@ -1,0 +1,61 @@
+#this is an example of a code to create a sem model using an auto estimator detector.
+
+pkg <- function(pkg){
+   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+   if (length(new.pkg))
+      install.packages(new.pkg, dependencies = TRUE)
+   sapply(pkg, require, character.only = TRUE)
+}
+packages <- c("tidyverse", "raster" ,"sf" ,"ggspatial","cluster", "factoextra",
+              "NbClust","tidyr", "semPlot", "semTools", "corrplot", "corrr",
+              "haven", "psych", "dplyr", "lavaan", "readr", "cvms","tm","NLP",
+              "SnowballC","RColorBrewer","wordcloud", "RefManageR",
+              "bibliometrix","quanteda","ggplot2", "ggpubr","Factoshiny")
+pkg(packages)
+
+library(readxl)
+setwd("/home/alrier/Documentos/Andrea_Amaya")/EncuestaVariablesOnly.csv
+
+datos0 = read_excel("/home/alrier/Documentos/Andrea_Amaya/EncuestaVariablesOnly.xlsx")
+datos0 %>% head()
+
+
+modelo0 <- '
+V_MUI =~ MU02 + MU05 + MU06 + MU07 
+V_MUIR =~ MU14 + MU15  MU35 + MU33 + MU37 + MU16 
+V_MU_AMINT =~ MU41+ MU44 + MU21 + MU23 + MU22 + MU25 + MU27 + MU28
+V_MH =~ MH01 + MH04 + MH05 + MH08 + MH09 + MH11 + MH14 + MH15 + MH23 + MH20+ MH21+ MH22 + MH24 + MH27
+V_A =~ AT03 + AT12 + AT19 + AT08 + AT01+ AT20
+V_EA =~ EA01 + EA06 + EA08 + EA10+EA11 + EA12 + EA18
+V_IC =~ IC03 + IC05 + IC14 + IC17 + IC19
+ 
+V_MU ~~ V_MH
+V_MU ~~ V_A
+V_MU ~~ V_EA
+V_MU ~~ V_IC
+V_MH~~ V_A
+V_MH~~ V_EA
+V_MH~~ V_IC
+V_A~~ V_EA
+V_A~~ V_IC
+V_IC~~ V_EA
+'
+
+es_normal <- TRUE
+variables <- names(datos0)
+
+for (var in variables) {
+   if (p.adjust(shapiro.test(datos0[[var]])$p.value, method = "BH") < 0.05) {
+      es_normal <- FALSE
+      break
+   }
+}
+# Seleccionar el estimador basado en la normalidad
+estimador_seleccionado <- if (es_normal) "MLM" else "WLSMV"
+
+# Ajustar el modelo con el estimador seleccionado
+SEM <- sem(modelo0, data = datos0, estimator = estimador_seleccionado)
+summary(SEM, fit.measures = TRUE, rsq = TRUE)
+
+semPaths(SEM, what = "paths", layout = "tree", title = TRUE, style = "LISREL")
+semPaths(SEM, what = "est", layout = "tree", title = TRUE, style = "LISREL")
